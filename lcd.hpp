@@ -5,18 +5,31 @@
 #define ON_REG 0xAF
 #define OFF_REG 0xAE
 
-class Display {
-    public:
-        int address;
-        unsigned char width;
-        unsigned char height;
-        unsigned char buffer[1024];
+#define WIDTH 128
+#define HEIGHT 64
 
-        void on() {};
-        void off() {};
-        int write(unsigned char*, unsigned char) {};
+class Display
+{
+public:
+    // Address field for convenience 
+    int address;
+
+    // Dimensions 
+    unsigned char width;
+    unsigned char height;
+
+    // Buffer for display data(?)
+    unsigned char buffer[1024];
+
+    // Turn display on/off
+    void on() {};
+    void off() {};
+
+    // Write data to display
+    int write(unsigned char *, unsigned char){};
 };
 
-int Display::write(unsigned char* data, unsigned char len) {
+int Display::write(unsigned char *data, unsigned char len)
+{
 
 }

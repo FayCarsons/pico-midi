@@ -19,18 +19,23 @@
 #define TRIG7 8
 #define TRIG8 9
 
+#define TRIGGER_MODE 0
+#if TRIGGER_MODE 
 #define TRIG_LEN 10
+#endif 
+
 #define NOTE_ON 0x90
 #define NOTE_OFF 0x80
 
 const unsigned int TRIG_PINS[8] = {TRIG1, TRIG2, TRIG3, TRIG4, TRIG5, TRIG6, TRIG7, TRIG8};
 
-void do_trig(uint8_t note, uint8_t command)
+inline void do_trig(uint8_t note, uint8_t command)
 {
     if (note < 60 || note > 67)
     {
         return;
     }
+
     uint8_t channel = note - 60;
     gpio_put(TRIG_PINS[channel], command == NOTE_ON ? 1 : 0);
 }
@@ -50,7 +55,7 @@ void uart_rx_callback()
         midi_msg[chars_rx] = ch;
         chars_rx++;
     }
-    uint8_t status midi_msg[0];
+    uint8_t status = midi_msg[0];
     uint8_t command = status >> 4;
     uint8_t channel = status & 0x0F;
 
@@ -67,28 +72,34 @@ void uart_rx_callback()
 
 int main()
 {
+    // Initialize UART
     uart_init(UART_ID, BAUD_RATE);
 
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    for (int pin : TRIG_PINS)
-    {
-        gpio_init(pin);
-        gpio_set_dir(pin, GPIO_OUT);
-    }
 
     int __unused_actual = uart_set_baudrate(UART_ID, BAUD_RATE);
 
     uart_set_hw_flow(UART_ID, false, false);
     uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
+
+    // set FIFO ! Important as midi messages are 3 bytes long
     uart_set_fifo_enabled(UART_ID, true);
 
     int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
+    // Set up interrupt handler for UART
     irq_set_exclusive_handler(UART_IRQ, uart_rx_callback);
     irq_set_enabled(UART_IRQ, true);
 
     uart_set_irq_enables(UART_ID, true, false);
+
+    // Inittialize gate/trigger output pins
+    for (int pin : TRIG_PINS)
+    {
+        gpio_init(pin);
+        gpio_set_dir(pin, GPIO_OUT);
+    }
 
     while (1)
     {
