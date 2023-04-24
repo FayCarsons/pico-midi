@@ -1,0 +1,6 @@
+{:tasks 
+ {set-path (shell "export PICO_SDK_PATH='/Users/fay/Desktop/Code/C++/pico-sdk'")
+  cd (shell "cd build")
+  cmake (shell "cmake ..")
+  make (shell "make pmidi")
+  build {:depends [cd cmake make]}}}
